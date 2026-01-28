@@ -1,0 +1,32 @@
+name: Deploy Proxy Config
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy nginx proxy config
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            cd /opt/apps/proxy
+            echo "Pulling latest config..."
+            git pull origin main
+
+            echo "Testing nginx config..."
+            docker compose exec -T nginx nginx -t
+
+            echo "Reloading nginx..."
+            docker compose exec -T nginx nginx -s reload
+
+            echo "Deployment complete!"

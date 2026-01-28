@@ -1,0 +1,14 @@
+# SSL certificates
+nginx/ssl/
+ssl/
+
+# htpasswd files (contain hashed passwords)
+nginx/.htpasswd
+nginx/.htpasswd-*
+.htpasswd
+
+# Certbot
+certbot/
+
+# System files
+.DS_Store
