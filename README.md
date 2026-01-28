@@ -47,3 +47,4 @@ Le proxy utilise le network Docker externe `proxy-network` pour communiquer avec
 # Create network (one-time setup)
 docker network create proxy-network
 ```
+# Test deploy
