@@ -6,6 +6,10 @@ services:
   nginx:
     image: nginx:alpine
     container_name: shared-proxy
+    command: >
+      /bin/sh -c "rm -f /var/log/nginx/access.log /var/log/nginx/error.log &&
+      touch /var/log/nginx/access.log /var/log/nginx/error.log &&
+      nginx -g 'daemon off;'"
     ports:
       - "80:80"
       - "443:443"
