@@ -1,4 +1,4 @@
-name: Deploy Proxy Config
+name: Deploy to Production
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy nginx proxy config
+    name: Deploy to production server
     runs-on: ubuntu-latest
 
     steps:
@@ -17,11 +17,29 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          command_timeout: 5m
+          command_timeout: 30m
           script: |
             cd /opt/apps/proxy
-            echo "Pulling latest config..."
+            echo "Pulling latest code..."
             git pull origin main
+
+            echo "Updating SSL certificate..."
+            sudo certbot certonly --webroot \
+              -w /opt/apps/proxy/certbot/www \
+              -d studio.vitess.tech \
+              -d rndv.vitess.tech \
+              -d monitoring.vitess.tech \
+              -d maximilienborne.fr \
+              -d www.maximilienborne.fr \
+              -d tools.maximilienborne.fr \
+              --non-interactive --agree-tos --expand
+
+            CERT_NAME=$(ls /etc/letsencrypt/live/ | grep -v README | head -1)
+            sudo cp -L "/etc/letsencrypt/live/$CERT_NAME/fullchain.pem" nginx/ssl/fullchain.pem
+            sudo cp -L "/etc/letsencrypt/live/$CERT_NAME/privkey.pem" nginx/ssl/privkey.pem
+
+            echo "Building and restarting services..."
+            docker compose up -d --force-recreate
 
             echo "Testing nginx config..."
             docker compose exec -T nginx nginx -t
@@ -30,3 +48,4 @@ jobs:
             docker compose exec -T nginx nginx -s reload
 
             echo "Deployment complete!"
+            docker compose ps

@@ -10,5 +10,11 @@ nginx/.htpasswd-*
 # Certbot
 certbot/
 
+# Monitoring data
+monitoring/grafana/data/
+
+# Deploy config
+.deploy.env
+
 # System files
 .DS_Store

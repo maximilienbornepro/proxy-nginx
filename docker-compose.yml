@@ -14,6 +14,7 @@ services:
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./certbot/www:/var/www/certbot:ro
+      - nginx-logs:/var/log/nginx
     restart: unless-stopped
     networks:
       - proxy-network
@@ -27,6 +28,78 @@ services:
         limits:
           cpus: '0.5'
           memory: 128M
+
+  # ============================================
+  # Monitoring Stack
+  # ============================================
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    restart: unless-stopped
+    networks:
+      - proxy-network
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - nginx-logs:/var/log/nginx:ro
+    depends_on:
+      - loki
+    restart: unless-stopped
+    networks:
+      - proxy-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - nginx-exporter
+    restart: unless-stopped
+    networks:
+      - proxy-network
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter
+    command:
+      - --nginx.scrape-uri=http://nginx:8080/stub_status
+    depends_on:
+      - nginx
+    restart: unless-stopped
+    networks:
+      - proxy-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=https://monitoring.vitess.tech
+    depends_on:
+      - loki
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - proxy-network
+
+volumes:
+  nginx-logs:
+  grafana-data:
+  loki-data:
+  prometheus-data:
 
 networks:
   proxy-network:
