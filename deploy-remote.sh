@@ -70,6 +70,7 @@ deploy_all() {
     remote_exec "sudo certbot certonly --webroot \
         -w ${REMOTE_PATH}/certbot/www \
         -d studio.vitess.tech \
+        -d tools.vitess.tech \
         -d rndv.vitess.tech \
         -d monitoring.vitess.tech \
         -d maximilienborne.fr \
@@ -111,6 +112,7 @@ renew_cert() {
     remote_exec "sudo certbot certonly --webroot \
         -w ${REMOTE_PATH}/certbot/www \
         -d studio.vitess.tech \
+        -d tools.vitess.tech \
         -d rndv.vitess.tech \
         -d monitoring.vitess.tech \
         -d maximilienborne.fr \
