@@ -76,6 +76,7 @@ deploy_all() {
         -d maximilienborne.fr \
         -d www.maximilienborne.fr \
         -d tools.maximilienborne.fr \
+        -d oflf.vitess.tech \
         --non-interactive --agree-tos --expand || true"
 
     remote_exec 'CERT_NAME=$(ls /etc/letsencrypt/live/ | grep -v README | head -1) && \
