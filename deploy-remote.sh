@@ -119,6 +119,7 @@ renew_cert() {
         -d maximilienborne.fr \
         -d www.maximilienborne.fr \
         -d tools.maximilienborne.fr \
+        -d oflf.vitess.tech \
         --non-interactive --agree-tos --expand"
 
     remote_exec 'CERT_NAME=$(ls /etc/letsencrypt/live/ | grep -v README | head -1) && \
